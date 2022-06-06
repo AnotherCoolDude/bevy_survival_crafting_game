@@ -25,7 +25,7 @@ use prelude::{
     InventoryPlugin, ItemsPlugin, PlayerPlugin,
 };
 
-pub const HEIGHT: f32 = 900.;
+pub const HEIGHT: f32 = 720.;
 pub const RESOLUTION: f32 = 16.0 / 9.0;
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash)]

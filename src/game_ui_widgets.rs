@@ -11,7 +11,7 @@ use kayak_ui::{
 };
 
 use crate::{
-    game_ui::{UIItems, UIProps},
+    game_ui::{Action, UIItems, UIProps},
     item::WorldObject,
     prelude::{Graphics, UIEvent, UIEventType},
 };
@@ -21,6 +21,7 @@ pub struct ItemProps {
     pub event_type: UIEventType,
     //Option to sastify Default
     pub handle: Option<Handle<BevyImage>>,
+    pub text: Option<String>,
     #[prop_field(Styles)]
     pub styles: Option<Style>,
     pub disabled: bool,
@@ -52,19 +53,26 @@ pub fn Item(props: ItemProps) {
     });
 
     let handle = context.query_world::<ResMut<ImageManager>, _, _>(|mut manager| {
-        manager.get(&props.handle.clone().unwrap())
+        if props.clone().handle.is_some() {
+            return Some(manager.get(&props.clone().handle.unwrap()));
+        }
+        None
     });
 
-    let item_name = format!(
-        "{} x{}",
-        props.clone().event_type.item_and_count().item.name(),
-        props.clone().event_type.item_and_count().count
-    );
+    let has_handle = props.clone().handle.is_some();
+    let has_text = props.clone().text.is_some();
+    let text = props.clone().text.unwrap_or("".to_string());
+    let disabled = props.clone().disabled;
+
     rsx! {
         <>
-            <Button on_event={Some(on_click_event)} styles={Some(button_style)} disabled={props.disabled}>
-                //<Text content={item_name} />
-                <Image handle={handle} />
+            <Button on_event={Some(on_click_event)} styles={Some(button_style)} disabled={disabled}>
+                <If condition={has_handle}>
+                    <Image handle={handle.unwrap()} />
+                </If>
+                <If condition={has_text}>
+                    <Text content={text} />
+                </If>
             </Button>
         </>
     }
@@ -115,6 +123,21 @@ pub fn HandUI(ui_props: UIProps) {
             <Element styles={ui_props.styles.clone()} >
             </Element>
         }
+    }
+}
+
+#[widget]
+pub fn ActionsUI(ui_props: UIProps) {
+    let actions = vec![Action::ShowItems];
+    rsx! {
+        <Element styles={ui_props.styles.clone()}>
+            {VecTracker::from(actions.iter().map(|a| {
+                constructor! {
+                    <Item event_type={UIEventType::ActionEvent(a.clone())}
+                    handle={None} text={Some(format!("{}", a))}/>
+                }
+            }))}
+        </Element>
     }
 }
 

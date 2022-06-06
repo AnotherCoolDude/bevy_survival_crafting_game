@@ -26,7 +26,7 @@ use crate::fire_graphics;
 pub use fire_graphics::FireGraphicsPlugin;
 
 use crate::game_ui_widgets;
-pub use game_ui_widgets::{HandUI, InventoryUI, ItemProps, RecipeUI};
+pub use game_ui_widgets::{ActionsUI, HandUI, InventoryUI, ItemProps, RecipeUI};
 
 use crate::game_ui;
-pub use game_ui::{GameUIPlugin, UIEvent, UIEventType, UIProps};
+pub use game_ui::{Action, GameUIPlugin, UIEvent, UIEventType, UIProps};

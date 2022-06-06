@@ -1,7 +1,9 @@
+use core::fmt;
+
 use crate::{
-    item::{ItemAndCount, ItemType},
-    prelude::{HandUI, InventoryUI, RecipeUI},
-    GameState,
+    item::ItemAndCount,
+    prelude::{ActionsUI, HandUI, InventoryUI, RecipeUI},
+    GameState, HEIGHT, RESOLUTION,
 };
 use bevy::prelude::*;
 use kayak_ui::{
@@ -25,18 +27,18 @@ pub enum UIEventType {
     CraftEvent(ItemAndCount),
     ToolEvent(ItemAndCount),
     InventoryEvent(ItemAndCount),
+    ActionEvent(Action),
 }
 
-impl UIEventType {
-    pub fn item_and_count(self) -> ItemAndCount {
+#[derive(Debug, Clone, PartialEq)]
+pub enum Action {
+    ShowItems,
+}
+
+impl fmt::Display for Action {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            UIEventType::None => ItemAndCount {
-                item: ItemType::None,
-                count: 0,
-            },
-            UIEventType::CraftEvent(i)
-            | UIEventType::ToolEvent(i)
-            | UIEventType::InventoryEvent(i) => i,
+            Action::ShowItems => write!(f, "Show items"),
         }
     }
 }
@@ -75,16 +77,21 @@ fn GameUI() {
         ..Default::default()
     };
 
+    let screen_width = HEIGHT * RESOLUTION;
+
     rsx! {
         <>
             <Window position={(0., 0.)} size={(100., 500.)} title={"Inventory".to_string()}>
                 <InventoryUI styles={Some(column_style)} />
             </Window>
-            <Window position={(1600. / 2. - 200., 900. - 100.)} size={(400., 100.)} title={"Recipes".to_string()}>
+            <Window position={(screen_width / 2. - 200., HEIGHT - 100.)} size={(400., 100.)} title={"Recipes".to_string()}>
                 <RecipeUI styles={Some(row_style)} />
             </Window>
-            <Window position={(1600. - 200., 900. - 100.)} size={(200., 100.)} title={"Hand Slot".to_string()} >
+            <Window position={(screen_width - 200., HEIGHT - 100.)} size={(200., 100.)} title={"Hand Slot".to_string()} >
                 <HandUI styles={Some(row_style)} />
+            </Window>
+            <Window position={(0., HEIGHT - 100.)} size={(200., 100.)} title={"Actions".to_string()} >
+                <ActionsUI styles={Some(row_style)} />
             </Window>
         </>
     }
