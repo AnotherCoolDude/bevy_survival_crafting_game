@@ -8,23 +8,18 @@ use crate::{
 };
 
 pub const INVENTORY_SIZE: usize = 7;
+/// Incomplete but should be used to limit number of a given item
 pub const INVENTORY_ITEM_SIZE: usize = 5;
 
 pub struct InventoryPlugin;
 
+/// Main tracker for the player inventory
 #[derive(Component, Default, Inspectable, Clone)]
 pub struct Inventory {
     pub items: [ItemAndCount; INVENTORY_SIZE],
 }
 
-#[derive(Component)]
-pub struct InventoryBox {
-    pub slot: usize,
-}
-
-#[derive(Component)]
-pub struct InventoryBoxContents;
-
+/// may be unused
 pub struct InventoryOverflow(pub usize);
 
 impl Plugin for InventoryPlugin {
@@ -73,7 +68,7 @@ impl Inventory {
 
     pub fn can_add(&self, item_and_count: &ItemAndCount) -> bool {
         let mut inventory_clone = self.clone();
-        inventory_clone.add(&item_and_count).is_none()
+        inventory_clone.add(item_and_count).is_none()
     }
 
     pub fn remove(&mut self, item_and_count: &ItemAndCount) -> Result<(), GameError> {
@@ -110,6 +105,8 @@ impl Inventory {
     }
 }
 
+/// Main system which tracks what should be rendered in UI
+/// FIXME this probably doesn't belong here
 fn update_inventory_ui(
     inventory_query: Query<
         (&Inventory, &Hands),
@@ -122,7 +119,6 @@ fn update_inventory_ui(
         // get inventory items for ui
         let inventory_items = inventory
             .items
-            .to_vec()
             .into_iter()
             .filter(|ic| ic.item != ItemType::None)
             .collect();
@@ -134,14 +130,7 @@ fn update_inventory_ui(
         });
 
         // get crafting items for ui
-        let crafting_items = crafting_book
-            .recipes
-            .iter()
-            .map(|r| ItemAndCount {
-                item: r.produces,
-                count: 1,
-            })
-            .collect();
+        let crafting_items = crafting_book.recipes.iter().map(|r| r.produces).collect();
 
         // update ui by updating binding object
         ui_items.set(UIItems {

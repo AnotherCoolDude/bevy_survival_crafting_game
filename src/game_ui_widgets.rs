@@ -1,13 +1,13 @@
 //Gross as BevyImage
-use bevy::prelude::{EventWriter, Handle, Image as BevyImage, Res, ResMut};
+use bevy::prelude::{default, EventWriter, Handle, Image as BevyImage, Res, ResMut};
 use kayak_ui::{
     bevy::ImageManager,
     core::{
         constructor, rsx,
         styles::{Edge, Style, StyleProp, Units},
-        use_state, widget, Binding, Bound, Color, EventType, OnEvent, VecTracker, WidgetProps,
+        widget, Binding, Bound, Color, EventType, OnEvent, VecTracker, WidgetProps,
     },
-    widgets::{Button, Element, If, Image, Text},
+    widgets::{Button, Element, Image, Text},
 };
 
 use crate::{
@@ -30,25 +30,27 @@ pub struct ItemProps {
 #[widget]
 pub fn Item(props: ItemProps) {
     let button_style = Style {
-        width: StyleProp::Value(Units::Pixels(70.0)),
+        width: StyleProp::Value(Units::Pixels(50.0)),
         height: StyleProp::Value(Units::Pixels(50.0)),
-        color: StyleProp::Value(Color::new(1., 0., 0., 1.)),
+        background_color: StyleProp::Value(Color::TRANSPARENT),
+        //background_color: StyleProp::Value(Color::new(0.4, 0.4, 0.4, 1.0)),
         padding: StyleProp::Value(Edge::all(Units::Stretch(1.0))),
         ..props.styles.clone().unwrap_or_default()
     };
 
-    let (clicked, set_clicked, ..) = use_state!(false);
+    let image_style = Style {
+        width: StyleProp::Value(Units::Pixels(45.0)),
+        height: StyleProp::Value(Units::Pixels(45.0)),
+        ..default()
+    };
 
-    if clicked {
-        context.query_world::<EventWriter<UIEvent>, _, _>(|mut ev| {
-            ev.send(UIEvent(props.event_type.clone()));
-            set_clicked(false);
-        });
-    }
+    let ui_event = props.event_type;
 
-    let on_click_event = OnEvent::new(move |_, event| {
+    let on_click_event = OnEvent::new(move |context, event| {
         if let EventType::Click(..) = event.event_type {
-            set_clicked(true);
+            context.query_world::<EventWriter<UIEvent>, _, _>(move |mut ev| {
+                ev.send(UIEvent(ui_event));
+            });
         }
     });
 
@@ -59,6 +61,7 @@ pub fn Item(props: ItemProps) {
         None
     });
 
+<<<<<<< HEAD
     let has_handle = props.clone().handle.is_some();
     let has_text = props.clone().text.is_some();
     let text = props.clone().text.unwrap_or("".to_string());
@@ -73,6 +76,20 @@ pub fn Item(props: ItemProps) {
                 <If condition={has_text}>
                     <Text content={text} />
                 </If>
+=======
+    let item_count = format!("x{}", props.clone().event_type.item_and_count().count);
+
+    let text_style = Style {
+        right: StyleProp::Value(Units::Pixels(5.0)),
+        ..default()
+    };
+
+    rsx! {
+        <>
+            <Button on_event={Some(on_click_event)} styles={Some(button_style)} disabled={props.disabled}>
+                <Image handle={handle} styles={Some(image_style)} />
+                <Text content={item_count} styles={Some(text_style)} />
+>>>>>>> 489ed5bf730c8c7f063dd707ee19ea32dff6bdc9
             </Button>
         </>
     }
@@ -93,7 +110,7 @@ pub fn InventoryUI(ui_props: UIProps) {
         {VecTracker::from(ii.iter().map(|item| {
             constructor! {
                 <Item event_type=
-                {UIEventType::InventoryEvent(item.clone())}
+                {UIEventType::InventoryEvent(*item)}
                 handle={Some(handles.get(&WorldObject::Item(item.item)).unwrap().clone())}/>
             }
         }))}
@@ -148,14 +165,14 @@ pub fn RecipeUI(ui_props: UIProps) {
     context.bind(&ui_items);
 
     let handles = context.query_world::<Res<Graphics>, _, _>(|graphics| graphics.image_map.clone());
-    let ii = ui_items.get().crafting_items;
+    let crafting_items = ui_items.get().crafting_items;
 
     rsx! {
         <Element styles={ui_props.styles.clone()}>
-        {VecTracker::from(ii.iter().map(|item| {
+        {VecTracker::from(crafting_items.iter().map(|item| {
             constructor! {
-                <Item event_type={UIEventType::CraftEvent(item.clone())}
-                handle={Some(handles.get(&WorldObject::Item(item.item)).unwrap().clone())}/>
+                <Item event_type={UIEventType::CraftEvent(*item)}
+                handle={println!("{:?}", item); Some(handles.get(item).unwrap().clone())}/>
             }
         }))}
         </ Element>
